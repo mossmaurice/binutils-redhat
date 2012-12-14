@@ -152,7 +152,6 @@ enum dwarf_section_display_enum
   static_vars,
   types,
   weaknames,
-  gdb_index,
   trace_info,
   trace_abbrev,
   trace_aranges,

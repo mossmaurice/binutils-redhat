@@ -1,6 +1,6 @@
 /* BFD back-end for HP PA-RISC ELF files.
    Copyright 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1999, 2000, 2001,
-   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012
+   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
    Free Software Foundation, Inc.
 
    Original code by
@@ -1789,12 +1789,10 @@ elf32_hppa_hide_symbol (struct bfd_link_info *info,
 	}
     }
 
-  /* STT_GNU_IFUNC symbol must go through PLT.  */
-  if (! hppa_elf_hash_entry (eh)->plabel
-      && eh->type != STT_GNU_IFUNC)
+  if (! hppa_elf_hash_entry (eh)->plabel)
     {
       eh->needs_plt = 0;
-      eh->plt = elf_hash_table (info)->init_plt_offset;
+      eh->plt = elf_hash_table (info)->init_plt_refcount;
     }
 }
 
@@ -1816,13 +1814,6 @@ elf32_hppa_adjust_dynamic_symbol (struct bfd_link_info *info,
   if (eh->type == STT_FUNC
       || eh->needs_plt)
     {
-      /* If the symbol is used by a plabel, we must allocate a PLT slot.
-	 The refcounts are not reliable when it has been hidden since
-	 hide_symbol can be called before the plabel flag is set.  */
-      if (hppa_elf_hash_entry (eh)->plabel
-	  && eh->plt.refcount <= 0)
-	eh->plt.refcount = 1;
-
       if (eh->plt.refcount <= 0
 	  || (eh->def_regular
 	      && eh->root.type != bfd_link_hash_defweak
@@ -1898,6 +1889,13 @@ elf32_hppa_adjust_dynamic_symbol (struct bfd_link_info *info,
 	}
     }
 
+  if (eh->size == 0)
+    {
+      (*_bfd_error_handler) (_("dynamic variable `%s' is zero size"),
+			     eh->root.root.string);
+      return TRUE;
+    }
+
   /* We must allocate the symbol in our .dynbss section, which will
      become part of the .bss section of the executable.  There will be
      an entry for this symbol in the .dynsym section.  The dynamic
@@ -1915,7 +1913,7 @@ elf32_hppa_adjust_dynamic_symbol (struct bfd_link_info *info,
   /* We must generate a COPY reloc to tell the dynamic linker to
      copy the initial value out of the dynamic object and into the
      runtime process image.  */
-  if ((eh->root.u.def.section->flags & SEC_ALLOC) != 0 && eh->size != 0)
+  if ((eh->root.u.def.section->flags & SEC_ALLOC) != 0)
     {
       htab->srelbss->size += sizeof (Elf32_External_Rela);
       eh->needs_copy = 1;
@@ -3342,16 +3340,10 @@ final_link_relocate (asection *input_section,
       switch (r_type)
 	{
 	  case R_PARISC_DLTIND21L:
-	  case R_PARISC_TLS_GD21L:
-	  case R_PARISC_TLS_LDM21L:
-	  case R_PARISC_TLS_IE21L:
 	    r_type = R_PARISC_DPREL21L;
 	    break;
 
 	  case R_PARISC_DLTIND14R:
-	  case R_PARISC_TLS_GD14R:
-	  case R_PARISC_TLS_LDM14R:
-	  case R_PARISC_TLS_IE14R:
 	    r_type = R_PARISC_DPREL14R;
 	    break;
 
@@ -3417,48 +3409,53 @@ final_link_relocate (asection *input_section,
     case R_PARISC_DPREL21L:
     case R_PARISC_DPREL14R:
     case R_PARISC_DPREL14F:
+    case R_PARISC_TLS_GD21L:
+    case R_PARISC_TLS_LDM21L:
+    case R_PARISC_TLS_IE21L:
       /* Convert instructions that use the linkage table pointer (r19) to
 	 instructions that use the global data pointer (dp).  This is the
 	 most efficient way of using PIC code in an incomplete executable,
 	 but the user must follow the standard runtime conventions for
 	 accessing data for this to work.  */
-      if (orig_r_type != r_type)
+      if (orig_r_type == R_PARISC_DLTIND21L
+	  || (!info->shared
+	      && (r_type == R_PARISC_TLS_GD21L
+		  || r_type == R_PARISC_TLS_LDM21L
+		  || r_type == R_PARISC_TLS_IE21L)))
 	{
-	  if (r_type == R_PARISC_DPREL21L)
-	    {
-	      /* GCC sometimes uses a register other than r19 for the
-		 operation, so we must convert any addil instruction
-		 that uses this relocation.  */
-	      if ((insn & 0xfc000000) == ((int) OP_ADDIL << 26))
-		insn = ADDIL_DP;
-	      else
-		/* We must have a ldil instruction.  It's too hard to find
-		   and convert the associated add instruction, so issue an
-		   error.  */
-		(*_bfd_error_handler)
-		  (_("%B(%A+0x%lx): %s fixup for insn 0x%x is not supported in a non-shared link"),
-		   input_bfd,
-		   input_section,
-		   (long) offset,
-		   howto->name,
-		   insn);
-	    }
-	  else if (r_type == R_PARISC_DPREL14F)
-	    {
-	      /* This must be a format 1 load/store.  Change the base
-		 register to dp.  */
-	      insn = (insn & 0xfc1ffff) | (27 << 21);
-	    }
+	  /* Convert addil instructions if the original reloc was a
+	     DLTIND21L.  GCC sometimes uses a register other than r19 for
+	     the operation, so we must convert any addil instruction
+	     that uses this relocation.  */
+	  if ((insn & 0xfc000000) == ((int) OP_ADDIL << 26))
+	    insn = ADDIL_DP;
+	  else
+	    /* We must have a ldil instruction.  It's too hard to find
+	       and convert the associated add instruction, so issue an
+	       error.  */
+	    (*_bfd_error_handler)
+	      (_("%B(%A+0x%lx): %s fixup for insn 0x%x is not supported in a non-shared link"),
+	       input_bfd,
+	       input_section,
+	       (long) offset,
+	       howto->name,
+	       insn);
+	}
+      else if (orig_r_type == R_PARISC_DLTIND14F)
+	{
+	  /* This must be a format 1 load/store.  Change the base
+	     register to dp.  */
+	  insn = (insn & 0xfc1ffff) | (27 << 21);
 	}
 
-      /* For all the DP relative relocations, we need to examine the symbol's
-	 section.  If it has no section or if it's a code section, then
-	 "data pointer relative" makes no sense.  In that case we don't
-	 adjust the "value", and for 21 bit addil instructions, we change the
-	 source addend register from %dp to %r0.  This situation commonly
-	 arises for undefined weak symbols and when a variable's "constness"
-	 is declared differently from the way the variable is defined.  For
-	 instance: "extern int foo" with foo defined as "const int foo".  */
+    /* For all the DP relative relocations, we need to examine the symbol's
+       section.  If it has no section or if it's a code section, then
+       "data pointer relative" makes no sense.  In that case we don't
+       adjust the "value", and for 21 bit addil instructions, we change the
+       source addend register from %dp to %r0.  This situation commonly
+       arises for undefined weak symbols and when a variable's "constness"
+       is declared differently from the way the variable is defined.  For
+       instance: "extern int foo" with foo defined as "const int foo".  */
       if (sym_sec == NULL || (sym_sec->flags & SEC_CODE) != 0)
 	{
 	  if ((insn & ((0x3f << 26) | (0x1f << 21)))
@@ -3475,9 +3472,6 @@ final_link_relocate (asection *input_section,
     case R_PARISC_DLTIND21L:
     case R_PARISC_DLTIND14R:
     case R_PARISC_DLTIND14F:
-    case R_PARISC_TLS_GD21L:
-    case R_PARISC_TLS_LDM21L:
-    case R_PARISC_TLS_IE21L:
     case R_PARISC_TLS_GD14R:
     case R_PARISC_TLS_LDM14R:
     case R_PARISC_TLS_IE14R:

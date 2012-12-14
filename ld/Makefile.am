@@ -211,7 +211,6 @@ ALL_EMULATION_SOURCES = \
 	eelf32ebmipvxworks.c \
 	eelf32elmip.c \
 	eelf32elmipvxworks.c \
-	eelf32epiphany.c \
 	eelf32fr30.c \
 	eelf32frv.c \
 	eelf32frvfd.c \
@@ -247,10 +246,8 @@ ALL_EMULATION_SOURCES = \
 	eelf32ppcsim.c \
 	eelf32ppcvxworks.c \
 	eelf32ppcwindiss.c \
-	eelf32rl78.c \
 	eelf32rx.c \
 	eelf32tilegx.c \
-	eelf32tilegx_be.c \
 	eelf32tilepro.c \
 	eelf32vax.c \
 	eelf32xc16x.c \
@@ -481,9 +478,7 @@ ALL_64_EMULATION_SOURCES = \
 	eelf64ltsmip_fbsd.c \
 	eelf64mmix.c \
 	eelf64ppc.c \
-	eelf64ppc_fbsd.c \
 	eelf64tilegx.c \
- 	eelf64tilegx_be.c \
 	eelf_l1om.c \
 	eelf_l1om_fbsd.c \
 	eelf_k1om.c \
@@ -995,9 +990,6 @@ eelf32elmipvxworks.c: $(srcdir)/emulparams/elf32elmipvxworks.sh \
   $(ELF_DEPS) $(srcdir)/emultempl/generic.em $(srcdir)/emultempl/mipself.em \
   $(srcdir)/emultempl/vxworks.em $(srcdir)/scripttempl/elf.sc ${GEN_DEPENDS}
 	${GENSCRIPTS} elf32elmipvxworks "$(tdir_elf32elmipvxworks)"
-eelf32epiphany.c: $(srcdir)/emulparams/elf32epiphany.sh \
-  $(ELF_DEPS) ${GEN_DEPENDS}
-	${GENSCRIPTS} elf32epiphany "$(tdir_epiphany)"
 eelf32fr30.c: $(srcdir)/emulparams/elf32fr30.sh \
   $(ELF_GEN_DEPS) $(srcdir)/scripttempl/elf.sc ${GEN_DEPENDS}
 	${GENSCRIPTS} elf32fr30 "$(tdir_fr30)"
@@ -1144,9 +1136,6 @@ eelf32ppcvxworks.c: $(srcdir)/emulparams/elf32ppcvxworks.sh \
 eelf32ppcwindiss.c: $(srcdir)/emulparams/elf32ppcwindiss.sh \
   $(ELF_DEPS) $(srcdir)/scripttempl/elf.sc ${GEN_DEPENDS}
 	${GENSCRIPTS} elf32ppcwindiss "$(tdir_elf32ppcwindiss)"
-eelf32rl78.c: $(srcdir)/emulparams/elf32rl78.sh \
-  $(srcdir)/emultempl/elf32.em $(srcdir)/scripttempl/elf.sc ${GEN_DEPENDS}
-	${GENSCRIPTS} elf32rl78 "$(tdir_elf32rl78)"
 eelf32rx.c: $(srcdir)/emulparams/elf32rx.sh \
   $(srcdir)/emultempl/elf32.em $(srcdir)/scripttempl/elf.sc ${GEN_DEPENDS}
 	${GENSCRIPTS} elf32rx "$(tdir_elf32rx)"
@@ -1154,10 +1143,6 @@ eelf32tilegx.c: $(srcdir)/emulparams/elf32tilegx.sh \
   $(srcdir)/emultempl/elf32.em $(srcdir)/emultempl/needrelax.em \
   $(srcdir)/scripttempl/elf.sc ${GEN_DEPENDS}
 	${GENSCRIPTS} elf32tilegx "$(tdir_tilegx)"
-eelf32tilegx_be.c: $(srcdir)/emulparams/elf32tilegx_be.sh \
-  $(srcdir)/emultempl/elf32.em $(srcdir)/emultempl/needrelax.em \
-  $(srcdir)/scripttempl/elf.sc ${GEN_DEPENDS}
-	${GENSCRIPTS} elf32tilegx_be "$(tdir_tilegx_be)"
 eelf32tilepro.c: $(srcdir)/emulparams/elf32tilepro.sh \
   $(srcdir)/emultempl/elf32.em $(srcdir)/emultempl/needrelax.em \
   $(srcdir)/scripttempl/elf.sc ${GEN_DEPENDS}
@@ -1987,18 +1972,10 @@ eelf64ppc.c: $(srcdir)/emulparams/elf64ppc.sh $(srcdir)/emultempl/ppc64elf.em \
   ldemul-list.h \
   $(ELF_DEPS) $(srcdir)/scripttempl/elf.sc ${GEN_DEPENDS}
 	${GENSCRIPTS} elf64ppc "$(tdir_elf64ppc)"
-eelf64ppc_fbsd.c: $(srcdir)/emulparams/elf64ppc_fbsd.sh \
-  $(srcdir)/emultempl/ppc64elf.em ldemul-list.h \
-  $(ELF_DEPS) $(srcdir)/scripttempl/elf.sc ${GEN_DEPENDS}
-	${GENSCRIPTS} elf64ppc_fbsd "$(tdir_elf64ppc_fbsd)"
 eelf64tilegx.c: $(srcdir)/emulparams/elf64tilegx.sh \
   $(srcdir)/emultempl/elf32.em $(srcdir)/emultempl/needrelax.em \
   $(srcdir)/scripttempl/elf.sc ${GEN_DEPENDS}
 	${GENSCRIPTS} elf64tilegx "$(tdir_tilegx)"
-eelf64tilegx_be.c: $(srcdir)/emulparams/elf64tilegx_be.sh \
-  $(srcdir)/emultempl/elf32.em $(srcdir)/emultempl/needrelax.em \
-  $(srcdir)/scripttempl/elf.sc ${GEN_DEPENDS}
-	${GENSCRIPTS} elf64tilegx_be "$(tdir_tilegx_be)"
 eelf_l1om.c: $(srcdir)/emulparams/elf_l1om.sh \
   $(ELF_DEPS) $(srcdir)/scripttempl/elf.sc ${GEN_DEPENDS}
 	${GENSCRIPTS} elf_l1om "$(tdir_elf_l1om)"

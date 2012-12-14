@@ -1,7 +1,7 @@
 /* ELF executable support for BFD.
 
    Copyright 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
-   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012
+   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
    Free Software Foundation, Inc.
 
    This file is part of BFD, the Binary File Descriptor library.
@@ -4820,13 +4820,12 @@ assign_file_positions_for_non_load_sections (bfd *abfd,
 	BFD_ASSERT (hdr->sh_offset == hdr->bfd_section->filepos);
       else if ((hdr->sh_flags & SHF_ALLOC) != 0)
 	{
-	  if (hdr->sh_size != 0)
-	    (*_bfd_error_handler)
-	      (_("%B: warning: allocated section `%s' not in segment"),
-	       abfd,
-	       (hdr->bfd_section == NULL
-		? "*unknown*"
-		: hdr->bfd_section->name));
+	  (*_bfd_error_handler)
+	    (_("%B: warning: allocated section `%s' not in segment"),
+	     abfd,
+	     (hdr->bfd_section == NULL
+	      ? "*unknown*"
+	      : hdr->bfd_section->name));
 	  /* We don't need to page align empty sections.  */
 	  if ((abfd->flags & D_PAGED) != 0 && hdr->sh_size != 0)
 	    off += vma_page_aligned_bias (hdr->sh_addr, off,
@@ -7405,30 +7404,36 @@ elf_find_function (bfd *abfd,
 
   for (p = symbols; *p != NULL; p++)
     {
-      asymbol *sym = *p;
-      asection *code_sec;
-      bfd_vma code_off;
+      elf_symbol_type *q;
+      unsigned int type;
 
-      if ((sym->flags & BSF_FILE) != 0)
+      q = (elf_symbol_type *) *p;
+
+      type = ELF_ST_TYPE (q->internal_elf_sym.st_info);
+      switch (type)
 	{
-	  file = sym;
+	case STT_FILE:
+	  file = &q->symbol;
 	  if (state == symbol_seen)
 	    state = file_after_symbol_seen;
 	  continue;
-	}
-
-      if (bed->maybe_function_sym (sym, &code_sec, &code_off)
-	  && code_sec == section
-	  && code_off >= low_func
-	  && code_off <= offset)
-	{
-	  func = sym;
-	  low_func = code_off;
-	  filename = NULL;
-	  if (file != NULL
-	      && ((sym->flags & BSF_LOCAL) != 0
-		  || state != file_after_symbol_seen))
-	    filename = bfd_asymbol_name (file);
+	default:
+	  if (!bed->is_function_type (type))
+	    break;
+	case STT_NOTYPE:
+	  if (bfd_get_section (&q->symbol) == section
+	      && q->symbol.value >= low_func
+	      && q->symbol.value <= offset)
+	    {
+	      func = (asymbol *) q;
+	      low_func = q->symbol.value;
+	      filename = NULL;
+	      if (file != NULL
+		  && (ELF_ST_BIND (q->internal_elf_sym.st_info) == STB_LOCAL
+		      || state != file_after_symbol_seen))
+		filename = bfd_asymbol_name (file);
+	    }
+	  break;
 	}
       if (state == nothing_seen)
 	state = symbol_seen;
@@ -7471,8 +7476,7 @@ _bfd_elf_find_nearest_line (bfd *abfd,
       return TRUE;
     }
 
-  if (_bfd_dwarf2_find_nearest_line (abfd, dwarf_debug_sections,
-                                     section, symbols, offset,
+  if (_bfd_dwarf2_find_nearest_line (abfd, section, symbols, offset,
 				     filename_ptr, functionname_ptr,
 				     line_ptr, 0,
 				     &elf_tdata (abfd)->dwarf2_find_line_info))
@@ -7693,12 +7697,11 @@ _bfd_elf_validate_reloc (bfd *abfd, arelent *areloc)
 bfd_boolean
 _bfd_elf_close_and_cleanup (bfd *abfd)
 {
-  struct elf_obj_tdata *tdata = elf_tdata (abfd);
-  if (bfd_get_format (abfd) == bfd_object && tdata != NULL)
+  if (bfd_get_format (abfd) == bfd_object)
     {
-      if (elf_shstrtab (abfd) != NULL)
+      if (elf_tdata (abfd) != NULL && elf_shstrtab (abfd) != NULL)
 	_bfd_elf_strtab_free (elf_shstrtab (abfd));
-      _bfd_dwarf2_cleanup_debug_info (abfd, &tdata->dwarf2_find_line_info);
+      _bfd_dwarf2_cleanup_debug_info (abfd);
     }
 
   return _bfd_generic_close_and_cleanup (abfd);
@@ -7976,18 +7979,6 @@ static bfd_boolean
 elfcore_grok_s390_prefix (bfd *abfd, Elf_Internal_Note *note)
 {
   return elfcore_make_note_pseudosection (abfd, ".reg-s390-prefix", note);
-}
-
-static bfd_boolean
-elfcore_grok_s390_last_break (bfd *abfd, Elf_Internal_Note *note)
-{
-  return elfcore_make_note_pseudosection (abfd, ".reg-s390-last-break", note);
-}
-
-static bfd_boolean
-elfcore_grok_s390_system_call (bfd *abfd, Elf_Internal_Note *note)
-{
-  return elfcore_make_note_pseudosection (abfd, ".reg-s390-system-call", note);
 }
 
 static bfd_boolean
@@ -8412,20 +8403,6 @@ elfcore_grok_note (bfd *abfd, Elf_Internal_Note *note)
       if (note->namesz == 6
           && strcmp (note->namedata, "LINUX") == 0)
         return elfcore_grok_s390_prefix (abfd, note);
-      else
-        return TRUE;
-
-    case NT_S390_LAST_BREAK:
-      if (note->namesz == 6
-          && strcmp (note->namedata, "LINUX") == 0)
-        return elfcore_grok_s390_last_break (abfd, note);
-      else
-        return TRUE;
-
-    case NT_S390_SYSTEM_CALL:
-      if (note->namesz == 6
-          && strcmp (note->namedata, "LINUX") == 0)
-        return elfcore_grok_s390_system_call (abfd, note);
       else
         return TRUE;
 
@@ -8885,6 +8862,7 @@ elfcore_write_note (bfd *abfd,
   return buf;
 }
 
+#if defined (HAVE_PRPSINFO_T) || defined (HAVE_PSINFO_T)
 char *
 elfcore_write_prpsinfo (bfd  *abfd,
 			char *buf,
@@ -8892,6 +8870,7 @@ elfcore_write_prpsinfo (bfd  *abfd,
 			const char *fname,
 			const char *psargs)
 {
+  const char *note_name = "CORE";
   const struct elf_backend_data *bed = get_elf_backend_data (abfd);
 
   if (bed->elf_backend_write_core_note != NULL)
@@ -8903,7 +8882,6 @@ elfcore_write_prpsinfo (bfd  *abfd,
 	return ret;
     }
 
-#if defined (HAVE_PRPSINFO_T) || defined (HAVE_PSINFO_T)
 #if defined (HAVE_PRPSINFO32_T) || defined (HAVE_PSINFO32_T)
   if (bed->s->elfclass == ELFCLASS32)
     {
@@ -8919,7 +8897,7 @@ elfcore_write_prpsinfo (bfd  *abfd,
       strncpy (data.pr_fname, fname, sizeof (data.pr_fname));
       strncpy (data.pr_psargs, psargs, sizeof (data.pr_psargs));
       return elfcore_write_note (abfd, buf, bufsiz,
-				 "CORE", note_type, &data, sizeof (data));
+				 note_name, note_type, &data, sizeof (data));
     }
   else
 #endif
@@ -8936,14 +8914,12 @@ elfcore_write_prpsinfo (bfd  *abfd,
       strncpy (data.pr_fname, fname, sizeof (data.pr_fname));
       strncpy (data.pr_psargs, psargs, sizeof (data.pr_psargs));
       return elfcore_write_note (abfd, buf, bufsiz,
-				 "CORE", note_type, &data, sizeof (data));
+				 note_name, note_type, &data, sizeof (data));
     }
+}
 #endif	/* PSINFO_T or PRPSINFO_T */
 
-  free (buf);
-  return NULL;
-}
-
+#if defined (HAVE_PRSTATUS_T)
 char *
 elfcore_write_prstatus (bfd *abfd,
 			char *buf,
@@ -8952,6 +8928,7 @@ elfcore_write_prstatus (bfd *abfd,
 			int cursig,
 			const void *gregs)
 {
+  const char *note_name = "CORE";
   const struct elf_backend_data *bed = get_elf_backend_data (abfd);
 
   if (bed->elf_backend_write_core_note != NULL)
@@ -8964,7 +8941,6 @@ elfcore_write_prstatus (bfd *abfd,
 	return ret;
     }
 
-#if defined (HAVE_PRSTATUS_T)
 #if defined (HAVE_PRSTATUS32_T)
   if (bed->s->elfclass == ELFCLASS32)
     {
@@ -8974,7 +8950,7 @@ elfcore_write_prstatus (bfd *abfd,
       prstat.pr_pid = pid;
       prstat.pr_cursig = cursig;
       memcpy (&prstat.pr_reg, gregs, sizeof (prstat.pr_reg));
-      return elfcore_write_note (abfd, buf, bufsiz, "CORE",
+      return elfcore_write_note (abfd, buf, bufsiz, note_name,
 				 NT_PRSTATUS, &prstat, sizeof (prstat));
     }
   else
@@ -8986,14 +8962,11 @@ elfcore_write_prstatus (bfd *abfd,
       prstat.pr_pid = pid;
       prstat.pr_cursig = cursig;
       memcpy (&prstat.pr_reg, gregs, sizeof (prstat.pr_reg));
-      return elfcore_write_note (abfd, buf, bufsiz, "CORE",
+      return elfcore_write_note (abfd, buf, bufsiz, note_name,
 				 NT_PRSTATUS, &prstat, sizeof (prstat));
     }
-#endif /* HAVE_PRSTATUS_T */
-
-  free (buf);
-  return NULL;
 }
+#endif /* HAVE_PRSTATUS_T */
 
 #if defined (HAVE_LWPSTATUS_T)
 char *
@@ -9194,32 +9167,6 @@ elfcore_write_s390_prefix (bfd *abfd,
 }
 
 char *
-elfcore_write_s390_last_break (bfd *abfd,
-			       char *buf,
-			       int *bufsiz,
-			       const void *s390_last_break,
-			       int size)
-{
-  char *note_name = "LINUX";
-  return elfcore_write_note (abfd, buf, bufsiz,
-                             note_name, NT_S390_LAST_BREAK,
-			     s390_last_break, size);
-}
-
-char *
-elfcore_write_s390_system_call (bfd *abfd,
-				char *buf,
-				int *bufsiz,
-				const void *s390_system_call,
-				int size)
-{
-  char *note_name = "LINUX";
-  return elfcore_write_note (abfd, buf, bufsiz,
-                             note_name, NT_S390_SYSTEM_CALL,
-			     s390_system_call, size);
-}
-
-char *
 elfcore_write_arm_vfp (bfd *abfd,
 		       char *buf,
 		       int *bufsiz,
@@ -9261,10 +9208,6 @@ elfcore_write_register_note (bfd *abfd,
     return elfcore_write_s390_ctrs (abfd, buf, bufsiz, data, size);
   if (strcmp (section, ".reg-s390-prefix") == 0)
     return elfcore_write_s390_prefix (abfd, buf, bufsiz, data, size);
-  if (strcmp (section, ".reg-s390-last-break") == 0)
-    return elfcore_write_s390_last_break (abfd, buf, bufsiz, data, size);
-  if (strcmp (section, ".reg-s390-system-call") == 0)
-    return elfcore_write_s390_system_call (abfd, buf, bufsiz, data, size);
   if (strcmp (section, ".reg-arm-vfp") == 0)
     return elfcore_write_arm_vfp (abfd, buf, bufsiz, data, size);
   return NULL;
@@ -9684,20 +9627,4 @@ _bfd_elf_is_function_type (unsigned int type)
 {
   return (type == STT_FUNC
 	  || type == STT_GNU_IFUNC);
-}
-
-/* Return TRUE iff the ELF symbol SYM might be a function.  Set *CODE_SEC
-   and *CODE_OFF to the function's entry point.  */
-
-bfd_boolean
-_bfd_elf_maybe_function_sym (const asymbol *sym,
-			     asection **code_sec, bfd_vma *code_off)
-{
-  if ((sym->flags & (BSF_SECTION_SYM | BSF_FILE | BSF_OBJECT
-		     | BSF_THREAD_LOCAL | BSF_RELC | BSF_SRELC)) != 0)
-    return FALSE;
-
-  *code_sec = sym->section;
-  *code_off = sym->value;
-  return TRUE;
 }

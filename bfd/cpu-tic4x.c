@@ -64,7 +64,6 @@ const bfd_arch_info_type bfd_tic3x_arch =
     FALSE,			/* Not the default architecture.  */
     bfd_default_compatible,
     tic4x_scan,
-    bfd_arch_default_fill,
     0
   };
 
@@ -81,7 +80,6 @@ const bfd_arch_info_type bfd_tic4x_arch =
     TRUE,			/* The default architecture.  */
     bfd_default_compatible,
     tic4x_scan,
-    bfd_arch_default_fill,
     &bfd_tic3x_arch,
   };
 

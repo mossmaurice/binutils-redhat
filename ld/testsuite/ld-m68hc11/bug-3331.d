@@ -1,7 +1,8 @@
 #source: bug-3331.s
 #as: -m68hc11
-#ld: -m m68hc11elf --relax
+#ld: --relax
 #objdump: -d --prefix-addresses -r
+#target: m6811-*-* m6812-*-*
 
 .*: +file format elf32-m68hc11
 

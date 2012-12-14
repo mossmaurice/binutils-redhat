@@ -56,7 +56,8 @@ template<int size>
 class Sized_symbol;
 class Symbol_table;
 class Output_data;
-class Output_data_got_base;
+template<int size, bool big_endian>
+class Output_data_got;
 class Output_section;
 class Input_objects;
 class Task;
@@ -396,11 +397,6 @@ class Target
   set_osabi(elfcpp::ELFOSABI osabi)
   { this->osabi_ = osabi; }
 
-  // Define target-specific standard symbols.
-  void
-  define_standard_symbols(Symbol_table* symtab, Layout* layout)
-  { this->do_define_standard_symbols(symtab, layout); }
-
  protected:
   // This struct holds the constant information for a child class.  We
   // use a struct to avoid the overhead of virtual function calls for
@@ -634,11 +630,6 @@ class Target
   do_select_as_default_target()
   { }
 
-  // This may be overridden by the child class.
-  virtual void
-  do_define_standard_symbols(Symbol_table*, Layout*)
-  { }
-
  private:
   // The implementations of the four do_make_elf_object virtual functions are
   // almost identical except for their sizes and endianness.  We use a template.
@@ -854,7 +845,7 @@ class Sized_target : public Target
   // Create the GOT and PLT sections for an incremental update.
   // A target needs to implement this to support incremental linking.
 
-  virtual Output_data_got_base*
+  virtual Output_data_got<size, big_endian>*
   init_got_plt_for_update(Symbol_table*,
 			  Layout*,
 			  unsigned int /* got_count */,

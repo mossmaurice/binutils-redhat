@@ -1329,7 +1329,7 @@ Target_powerpc<size, big_endian>::Scan::local(
               rela_dyn->add_local_relative(object, r_sym, r_type,
 					   output_section, data_shndx,
 					   reloc.get_r_offset(),
-					   reloc.get_r_addend(), false);
+					   reloc.get_r_addend());
             }
         }
       break;
@@ -1372,7 +1372,7 @@ Target_powerpc<size, big_endian>::Scan::local(
 		object->set_local_got_offset(r_sym, GOT_TYPE_STANDARD, off);
 		rela_dyn->add_local_relative(object, r_sym,
 					     elfcpp::R_POWERPC_RELATIVE,
-					     got, off, 0, false);
+					     got, off, 0);
 	      }
           }
 	else
@@ -1566,8 +1566,8 @@ Target_powerpc<size, big_endian>::Scan::global(
             if (gsym->is_from_dynobj()
                 || gsym->is_undefined()
                 || gsym->is_preemptible())
-              got->add_global_with_rel(gsym, GOT_TYPE_STANDARD, rela_dyn,
-				       elfcpp::R_POWERPC_GLOB_DAT);
+              got->add_global_with_rela(gsym, GOT_TYPE_STANDARD, rela_dyn,
+                                        elfcpp::R_POWERPC_GLOB_DAT);
             else if (!gsym->has_got_offset(GOT_TYPE_STANDARD))
               {
 		unsigned int off = got->add_constant(0);

@@ -1,6 +1,6 @@
 /* A YACC grammar to parse a superset of the AT&T linker scripting language.
    Copyright 1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
-   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012
+   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
    Free Software Foundation, Inc.
    Written by Steve Chamberlain of Cygnus Support (steve@cygnus.com).
 
@@ -386,20 +386,17 @@ input_list:
 		{ lang_add_input_file($2,lang_input_file_is_l_enum,
 				 (char *)NULL); }
 	|	AS_NEEDED '('
-		  { $<integer>$ = input_flags.add_DT_NEEDED_for_regular;
-		    input_flags.add_DT_NEEDED_for_regular = TRUE; }
+		  { $<integer>$ = add_DT_NEEDED_for_regular; add_DT_NEEDED_for_regular = TRUE; }
 		     input_list ')'
-		  { input_flags.add_DT_NEEDED_for_regular = $<integer>3; }
+		  { add_DT_NEEDED_for_regular = $<integer>3; }
 	|	input_list ',' AS_NEEDED '('
-		  { $<integer>$ = input_flags.add_DT_NEEDED_for_regular;
-		    input_flags.add_DT_NEEDED_for_regular = TRUE; }
+		  { $<integer>$ = add_DT_NEEDED_for_regular; add_DT_NEEDED_for_regular = TRUE; }
 		     input_list ')'
-		  { input_flags.add_DT_NEEDED_for_regular = $<integer>5; }
+		  { add_DT_NEEDED_for_regular = $<integer>5; }
 	|	input_list AS_NEEDED '('
-		  { $<integer>$ = input_flags.add_DT_NEEDED_for_regular;
-		    input_flags.add_DT_NEEDED_for_regular = TRUE; }
+		  { $<integer>$ = add_DT_NEEDED_for_regular; add_DT_NEEDED_for_regular = TRUE; }
 		     input_list ')'
-		  { input_flags.add_DT_NEEDED_for_regular = $<integer>4; }
+		  { add_DT_NEEDED_for_regular = $<integer>4; }
 	;
 
 sections:
@@ -632,7 +629,7 @@ input_section_spec_no_keep:
 			  tmp.exclude_name_list = NULL;
 			  tmp.sorted = none;
 			  tmp.section_flag_list = $1;
-			  lang_add_wild (&tmp, $3, ldgram_had_keep);
+			  lang_add_wild (NULL, $3, ldgram_had_keep);
 			}
 	|	wildcard_spec '(' file_NAME_list ')'
 			{
@@ -1222,7 +1219,7 @@ phdr_type:
 			    {
 			      einfo (_("\
 %X%P:%S: unknown phdr type `%s' (try integer literal)\n"),
-				     NULL, s);
+				     s);
 			      $$ = exp_intop (0);
 			    }
 			}
@@ -1245,8 +1242,7 @@ phdr_qualifiers:
 		  else if (strcmp ($1, "FLAGS") == 0 && $2 != NULL)
 		    $$.flags = $2;
 		  else
-		    einfo (_("%X%P:%S: PHDRS syntax error at `%s'\n"),
-			   NULL, $1);
+		    einfo (_("%X%P:%S: PHDRS syntax error at `%s'\n"), $1);
 		}
 	|	AT '(' exp ')' phdr_qualifiers
 		{
@@ -1452,9 +1448,9 @@ yyerror(arg)
 {
   if (ldfile_assumed_script)
     einfo (_("%P:%s: file format not recognized; treating as linker script\n"),
-	   ldlex_filename ());
+	   ldfile_input_filename);
   if (error_index > 0 && error_index < ERROR_NAME_MAX)
-    einfo ("%P%F:%S: %s in %s\n", NULL, arg, error_names[error_index - 1]);
+     einfo ("%P%F:%S: %s in %s\n", arg, error_names[error_index-1]);
   else
-    einfo ("%P%F:%S: %s\n", NULL, arg);
+     einfo ("%P%F:%S: %s\n", arg);
 }

@@ -3140,23 +3140,13 @@ print_insn_arm (bfd_vma pc, struct disassemble_info *info, long given)
 		    case 'o':
 		      if ((given & 0x02000000) != 0)
 			{
-			  unsigned int rotate = (given & 0xf00) >> 7;
-			  unsigned int immed = (given & 0xff);
-			  unsigned int a, i;
+			  int rotate = (given & 0xf00) >> 7;
+			  int immed = (given & 0xff);
 
-			  a = (((immed << (32 - rotate))
-				| (immed >> rotate)) & 0xffffffff);
-			  /* If there is another encoding with smaller rotate,
-			     the rotate should be specified directly.  */
-			  for (i = 0; i < 32; i += 2)
-			    if ((a << i | a >> (32 - i)) <= 0xff)
-			      break;
-
-			  if (i != rotate)
-			    func (stream, "#%d, %d", immed, rotate);
-			  else
-			    func (stream, "#%d", a);
-			  value_in_comment = a;
+			  immed = (((immed << (32 - rotate))
+				    | (immed >> rotate)) & 0xffffffff);
+			  func (stream, "#%d", immed);
+			  value_in_comment = immed;
 			}
 		      else
 			arm_decode_shift (given, func, stream, TRUE);

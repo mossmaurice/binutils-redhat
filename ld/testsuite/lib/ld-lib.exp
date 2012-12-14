@@ -27,31 +27,6 @@ proc load_common_lib { name } {
 
 load_common_lib binutils-common.exp
 
-# Returns 1 if the gcc for the target is at least version MAJOR.MINOR
-# Returns 0 otherwise.
-#
-proc at_least_gcc_version { major minor } {
-    
-    if {![info exists CC]} {
-	set CC [find_gcc]
-    }
-    if { $CC == "" } {
-      return 0
-    }
-    set state [remote_exec host $CC --version]
-    set tmp "[lindex $state 1]\n"
-    # Look for (eg) 4.6.1 in the version output.
-    regexp " .* (\[1-9\])\\.(\[0-9\])\\.\[0-9\]* .*" "$tmp" fred maj min
-    verbose "gcc version: $tmp"
-    verbose "major gcc version is $maj, want at least $major"
-    if { $maj == $major } then {
-	verbose "minor gcc version is $min, want at least $minor"
-	return [expr  $min >= $minor ]
-    } else {
-	return [expr $maj > $major ]
-    }
-}
-
 # Extract and print the version number of ld.
 #
 proc default_ld_version { ld } {
@@ -415,7 +390,7 @@ proc ld_simple_link_defsyms {} {
     }
 
     # m6811/m6812 code has references to soft registers.
-    if {[istarget m6811-*-*] || [istarget m6812-*-*] || [istarget m68hc1*-*-*]} {
+    if {[istarget m6811-*-*] || [istarget m6812-*-*]} {
 	append flags " --defsym _.frame=0 --defsym _.d1=0 --defsym _.d2=0"
 	append flags " --defsym _.d3=0 --defsym _.d4=0"
 	append flags " --defsym _.tmp=0 --defsym _.xy=0 --defsym _.z=0"
@@ -989,12 +964,11 @@ proc run_ld_link_tests { ldtests } {
 
 	# Assemble each file in the test.
 	foreach src_file $src_files {
-	    set fileroot "[file rootname [file tail $src_file]]"
-	    set objfile "tmpdir/$fileroot.o"
+	    set objfile "tmpdir/[file rootname $src_file].o"
 	    lappend objfiles $objfile
 
 	    if { [file extension $src_file] == ".c" } {
-		set as_file "tmpdir/$fileroot.s"
+		set as_file "tmpdir/[file rootname $src_file].s"
 		if ![ld_compile "$CC -S $CFLAGS $cflags" $srcdir/$subdir/$src_file $as_file] {
 		    set is_unresolved 1
 		    break
@@ -1188,8 +1162,7 @@ proc run_ld_link_exec_tests { targets_to_xfail ldtests } {
 
 	# Assemble each file in the test.
 	foreach src_file $src_files {
-	    set fileroot "[file rootname [file tail $src_file]]"
-	    set objfile "tmpdir/$fileroot.o"
+	    set objfile "tmpdir/[file rootname $src_file].o"
 	    lappend objfiles $objfile
 
 	    # We ignore warnings since some compilers may generate
@@ -1311,8 +1284,7 @@ proc run_cc_link_tests { ldtests } {
 
 	# Compile each file in the test.
 	foreach src_file $src_files {
-	    set fileroot "[file rootname [file tail $src_file]]"
-	    set objfile "tmpdir/$fileroot.o"
+	    set objfile "tmpdir/[file rootname $src_file].o"
 	    lappend objfiles $objfile
 
 	    # We ignore warnings since some compilers may generate
@@ -1446,7 +1418,7 @@ proc check_gc_sections_available { } {
 	     || [istarget or32-*-*]
 	     || [istarget pj*-*-*]
 	     || [istarget alpha-*-*]
-	     || [istarget hppa*64-*-*]
+	     || [istarget hppa64-*-*]
 	     || [istarget i370-*-*]
 	     || [istarget i860-*-*]
 	     || [istarget ia64-*-*]
@@ -1467,8 +1439,6 @@ proc check_gc_sections_available { } {
 	}
 
 	# Check if the ld used by gcc supports --gc-sections.
-	# FIXME: this test is useless since ld --help always says
-	# --gc-sections is available
 	set ld_output [remote_exec host $ld "--help"]
 	if { [ string first "--gc-sections" $ld_output ] >= 0 } {
 	    set gc_sections_available_saved 1
@@ -1477,53 +1447,6 @@ proc check_gc_sections_available { } {
 	}
     }
     return $gc_sections_available_saved
-}
-
-# Returns true if -shared is supported on the target
-# Only used and accurate for ELF targets at the moment
-
-proc check_shared_lib_support { } {
-    if {![istarget arc-*-*]
-	 && ![istarget avr-*-*]
-	 && ![istarget cr16-*-*]
-	 && ![istarget cris*-*-*]
-	 && ![istarget crx-*-*]
-	 && ![istarget d10v-*-*]
-	 && ![istarget d30v-*-*]
-	 && ![istarget dlx-*-*]
-	 && ![istarget epiphany-*-*]
-	 && ![istarget fr30-*-*]
-	 && ![istarget frv-*-*]
-	 && ![istarget h8300-*-*]
-	 && ![istarget i860-*-*]
-	 && ![istarget i960-*-*]
-	 && ![istarget ip2k-*-*]
-	 && ![istarget iq2000-*-*]
-	 && ![istarget lm32-*-*]
-	 && ![istarget m32c-*-*]
-	 && ![istarget m32r-*-*]
-	 && ![istarget m6811-*-*]
-	 && ![istarget m6812-*-*]
-	 && ![istarget m68hc1*-*-*]
-	 && ![istarget mcore*-*-*]
-	 && ![istarget mep-*-*]
-	 && ![istarget microblaze-*-*]
-	 && ![istarget mn10200-*-*]
-	 && ![istarget moxie-*-*]
-	 && ![istarget msp430-*-*]
-	 && ![istarget mt-*-*]
-	 && ![istarget openrisc-*-*]
-	 && ![istarget or32-*-*]
-	 && ![istarget pj-*-*]
-	 && ![istarget rx-*-*]
-	 && ![istarget spu-*-*]
-	 && ![istarget v850*-*-*]
-	 && ![istarget xstormy16-*-*]
-	 && ![istarget *-*-irix*]
-	 && ![istarget *-*-rtems] } {
-	return 1
-    }
-    return 0
 }
 
 # Returns true if the target ld supports the plugin API.

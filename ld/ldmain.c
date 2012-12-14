@@ -1,6 +1,6 @@
 /* Main program of GNU linker.
    Copyright 1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
-   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012
+   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
    Free Software Foundation, Inc.
    Written by Steve Chamberlain steve@cygnus.com
 
@@ -94,6 +94,18 @@ bfd_boolean trace_file_tries;
 /* Nonzero means version number was printed, so exit successfully
    instead of complaining if no input files are given.  */
 bfd_boolean version_printed;
+
+/* Nonzero means link in every member of an archive.  */
+bfd_boolean whole_archive;
+
+/* True means only create DT_NEEDED entries for dynamic libraries
+   if they actually satisfy some reference in a regular object.  */
+bfd_boolean add_DT_NEEDED_for_regular;
+
+/* True means create DT_NEEDED entries for dynamic libraries that
+   are DT_NEEDED by dynamic libraries specifically mentioned on
+   the command line.  */
+bfd_boolean add_DT_NEEDED_for_dynamic;
 
 /* TRUE if we should demangle symbol names.  */
 bfd_boolean demangling;
@@ -315,7 +327,7 @@ main (int argc, char **argv)
       else
 	{
 	  lex_string = s;
-	  lex_redirect (s, _("built in linker script"), 1);
+	  lex_redirect (s);
 	}
       parser_input = input_script;
       yyparse ();
@@ -755,9 +767,9 @@ add_archive_element (struct bfd_link_info *info,
 	  file.filesize = arelt_size (abfd);
 	  file.fd = fd;
 	  plugin_maybe_claim (&file, input);
-	  if (input->flags.claimed)
+	  if (input->claimed)
 	    {
-	      input->flags.claim_archive = TRUE;
+	      input->claim_archive = TRUE;
 	      *subsbfd = input->the_bfd;
 	    }
 	}

@@ -94,9 +94,6 @@ object_unittest_SOURCES = object_unittest.cc
 check_PROGRAMS += binary_unittest
 binary_unittest_SOURCES = binary_unittest.cc
 
-check_PROGRAMS += leb128_unittest
-leb128_unittest_SOURCES = leb128_unittest.cc
-
 endif NATIVE_OR_CROSS_LINKER
 
 # ---------------------------------------------------------------------
@@ -864,7 +861,7 @@ initpri1_LDADD =
 check_PROGRAMS += initpri2
 initpri2_SOURCES = initpri2.c
 initpri2_DEPENDENCIES = gcctestdir/ld
-initpri2_LDFLAGS = -Bgcctestdir/ -Wl,--ctors-in-init-array
+initpri2_LDFLAGS = -Bgcctestdir/
 initpri2_LDADD =
 
 check_PROGRAMS += initpri3a
@@ -873,16 +870,11 @@ initpri3a_DEPENDENCIES = gcctestdir/ld
 initpri3a_LDFLAGS = -Bgcctestdir/
 initpri3a_LDADD =
 
-# This test fails on targets not using .ctors and .dtors sections (e.g. ARM
-# EABI). Given that gcc is moving towards using .init_array in all cases,
-# this test is commented out.  A better fix would be checking whether gcc
-# uses .ctors or .init_array sections in configure.
-
-# check_PROGRAMS += initpri3b
-# initpri3b_SOURCES = initpri3.c
-# initpri3b_DEPENDENCIES = gcctestdir/ld
-# initpri3b_LDFLAGS = -Bgcctestdir/ -Wl,--no-ctors-in-init-array
-# initpri3b_LDADD =
+check_PROGRAMS += initpri3b
+initpri3b_SOURCES = initpri3.c
+initpri3b_DEPENDENCIES = gcctestdir/ld
+initpri3b_LDFLAGS = -Bgcctestdir/ -Wl,--no-ctors-in-init-array
+initpri3b_LDADD =
 
 # Test --detect-odr-violations
 check_SCRIPTS += debug_msg.sh
@@ -1518,20 +1510,6 @@ unused.o: unused.c
 unused.c:
 	@cp /dev/null $@
 
-check_SCRIPTS += plugin_final_layout.sh
-check_DATA += plugin_final_layout.stdout
-plugin_final_layout.o: plugin_final_layout.cc
-	$(CXXCOMPILE) -O0 -c -ffunction-sections  -fdata-sections -g -o $@ $<
-plugin_final_layout: plugin_final_layout.o plugin_section_order.so gcctestdir/ld
-	$(CXXLINK) -Bgcctestdir/ -Wl,--plugin,"./plugin_section_order.so" plugin_final_layout.o
-plugin_final_layout.stdout: plugin_final_layout
-	$(TEST_NM) -n plugin_final_layout > plugin_final_layout.stdout
-
-plugin_section_order.so: plugin_section_order.o
-	$(LINK) -Bgcctestdir/ -shared plugin_section_order.o
-plugin_section_order.o: plugin_section_order.c
-	$(COMPILE) -O0 -c -fpic -o $@ $<
-
 endif PLUGINS
 
 check_PROGRAMS += exclude_libs_test
@@ -1966,31 +1944,6 @@ memory_test: memory_test.o gcctestdir/ld $(srcdir)/memory_test.t
 	$(LINK) -Bgcctestdir/ -nostartfiles -nostdlib -T $(srcdir)/memory_test.t -o $@ memory_test.o
 memory_test.stdout: memory_test
 	$(TEST_READELF) -lWS  $< > $@
-
-# Test that --gdb-index functions correctly.
-check_SCRIPTS += gdb_index_test_1.sh
-check_DATA += gdb_index_test_1.stdout
-MOSTLYCLEANFILES += gdb_index_test_1.stdout gdb_index_test_1
-gdb_index_test.o: gdb_index_test.cc
-	$(CXXCOMPILE) -O0 -g -c -o $@ $<
-gdb_index_test_1: gdb_index_test.o gcctestdir/ld
-	$(CXXLINK) -Bgcctestdir/ -Wl,--gdb-index $<
-gdb_index_test_1.stdout: gdb_index_test_1
-	$(TEST_READELF) --debug-dump=gdb_index $< > $@
-
-if HAVE_ZLIB
-
-check_SCRIPTS += gdb_index_test_2.sh
-check_DATA += gdb_index_test_2.stdout
-MOSTLYCLEANFILES += gdb_index_test_2.stdout gdb_index_test_2
-gdb_index_test_cdebug.o: gdb_index_test.cc
-	$(CXXCOMPILE) -Bgcctestdir/ -O0 -g -Wa,--compress-debug-sections -c -o $@ $<
-gdb_index_test_2: gdb_index_test_cdebug.o gcctestdir/ld
-	$(CXXLINK) -Bgcctestdir/ -Wl,--gdb-index $<
-gdb_index_test_2.stdout: gdb_index_test_2
-	$(TEST_READELF) --debug-dump=gdb_index $< > $@
-
-endif HAVE_ZLIB
 
 # End-to-end incremental linking tests.
 # Incremental linking is currently supported only on the x86_64 target.
@@ -2530,7 +2483,7 @@ check_SCRIPTS += arm_exidx_test.sh
 check_DATA += arm_exidx_test.stdout
 
 arm_exidx_test.stdout: arm_exidx_test.so
-	$(TEST_READELF) -Sr $< > $@
+	$(TEST_READELF) -S $< > $@
 
 arm_exidx_test.so: arm_exidx_test.o ../ld-new
 	../ld-new -shared -o $@ $<

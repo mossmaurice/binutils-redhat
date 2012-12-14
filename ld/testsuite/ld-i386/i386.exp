@@ -194,8 +194,6 @@ run_dump_test "hidden3"
 run_dump_test "protected1"
 run_dump_test "protected2"
 run_dump_test "protected3"
-run_dump_test "protected4"
-run_dump_test "protected5"
 run_dump_test "tlspie1"
 run_dump_test "tlspie2"
 run_dump_test "nogot1"
@@ -212,4 +210,3 @@ if { !([istarget "i?86-*-linux*"]
 
 run_dump_test "compressed1"
 run_dump_test "pr12627"
-run_dump_test "pr13302"

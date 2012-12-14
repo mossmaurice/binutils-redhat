@@ -305,7 +305,7 @@ changequote([,])dnl
         fi
         ;;
 
-      epiphany | fr30 | ip2k | iq2000 | lm32 | m32r | openrisc)
+      fr30 | ip2k | iq2000 | lm32 | m32r | openrisc)
 	using_cgen=yes
 	;;
 
@@ -351,13 +351,6 @@ changequote([,])dnl
 	if test $this_target = $target ; then
 	  AC_DEFINE_UNQUOTED(DEFAULT_ARCH, "${arch}", [Default architecture.])
 	fi
-	;;
-
-      rl78)
-        echo ${extra_objects} | grep -s "rl78-parse.o"
-        if test $? -ne 0 ; then
-          extra_objects="$extra_objects rl78-parse.o"
-        fi
 	;;
 
       rx)
@@ -625,7 +618,7 @@ AC_DEFINE_UNQUOTED(TARGET_OS,		"${target_os}",    [Target OS.])
 AC_PROG_YACC
 AM_PROG_LEX
 
-ALL_LINGUAS="fr tr es rw id ru fi ja"
+ALL_LINGUAS="fr tr es rw id ru fi"
 ZW_GNU_GETTEXT_SISTER_DIR
 AM_PO_SUBDIRS
 

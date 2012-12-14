@@ -2896,10 +2896,7 @@ elf32_frv_relocate_section (output_bfd, info, input_bfd, input_section,
 	default:
 	non_fdpic:
 	  picrel = NULL;
-	  if (h
-	      && ! FRVFDPIC_SYM_LOCAL (info, h)
-	      && _bfd_elf_section_offset (output_bfd, info, input_section,
-					  rel->r_offset) != (bfd_vma) -1)
+	  if (h && ! FRVFDPIC_SYM_LOCAL (info, h))
 	    {
 	      info->callbacks->einfo
 		(_("%H: relocation references symbol"

@@ -13,7 +13,7 @@ fragment <<EOF
 
 /* ${ELFSIZE} bit ELF emulation code for ${EMULATION_NAME}
    Copyright 1991, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
-   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012
+   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
    Free Software Foundation, Inc.
    Written by Steve Chamberlain <sac@cygnus.com>
    ELF support by Ian Lance Taylor <ian@cygnus.com>
@@ -102,7 +102,7 @@ static void
 gld${EMULATION_NAME}_before_parse (void)
 {
   ldfile_set_output_arch ("${OUTPUT_ARCH}", bfd_arch_`echo ${ARCH} | sed -e 's/:.*//'`);
-  input_flags.dynamic = ${DYNAMIC_LINK-TRUE};
+  config.dynamic_link = ${DYNAMIC_LINK-TRUE};
   config.has_shared = `if test -n "$GENERATE_SHLIB_SCRIPT" ; then echo TRUE ; else echo FALSE ; fi`;
 }
 
@@ -121,16 +121,16 @@ gld${EMULATION_NAME}_load_symbols (lang_input_statement_type *entry)
   /* Tell the ELF linker that we don't want the output file to have a
      DT_NEEDED entry for this file, unless it is used to resolve
      references in a regular object.  */
-  if (entry->flags.add_DT_NEEDED_for_regular)
+  if (entry->add_DT_NEEDED_for_regular)
     link_class = DYN_AS_NEEDED;
 
   /* Tell the ELF linker that we don't want the output file to have a
      DT_NEEDED entry for any dynamic library in DT_NEEDED tags from
      this file at all.  */
-  if (!entry->flags.add_DT_NEEDED_for_dynamic)
+  if (!entry->add_DT_NEEDED_for_dynamic)
     link_class |= DYN_NO_ADD_NEEDED;
 
-  if (entry->flags.just_syms
+  if (entry->just_syms_flag
       && (bfd_get_file_flags (entry->the_bfd) & DYNAMIC) != 0)
     einfo (_("%P%F: --just-symbols may not be used on DSO: %B\n"),
 	   entry->the_bfd);
@@ -862,7 +862,7 @@ gld${EMULATION_NAME}_check_needed (lang_input_statement_type *s)
       return;
     }
 
-  if (s->flags.search_dirs)
+  if (s->search_dirs_flag)
     {
       const char *f = strrchr (s->filename, '/');
       if (f != NULL
@@ -1560,7 +1560,7 @@ ${ELF_INTERPRETER_SET_DEFAULT}
 	char *msg;
 	bfd_boolean ret;
 
-	if (is->flags.just_syms)
+	if (is->just_syms_flag)
 	  continue;
 
 	s = bfd_get_section_by_name (is->the_bfd, ".gnu.warning");
@@ -1621,7 +1621,7 @@ gld${EMULATION_NAME}_open_dynamic_archive
   const char *filename;
   char *string;
 
-  if (! entry->flags.maybe_archive)
+  if (! entry->maybe_archive)
     return FALSE;
 
   filename = entry->filename;
@@ -1675,7 +1675,7 @@ gld${EMULATION_NAME}_open_dynamic_archive
   if (bfd_check_format (entry->the_bfd, bfd_object)
       && (entry->the_bfd->flags & DYNAMIC) != 0)
     {
-      ASSERT (entry->flags.maybe_archive && entry->flags.search_dirs);
+      ASSERT (entry->maybe_archive && entry->search_dirs_flag);
 
       /* Rather than duplicating the logic above.  Just use the
 	 filename we recorded earlier.  */

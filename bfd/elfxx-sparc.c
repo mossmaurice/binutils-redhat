@@ -1,5 +1,5 @@
 /* SPARC-specific support for ELF
-   Copyright 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012
+   Copyright 2005, 2006, 2007, 2008, 2009, 2010, 2011
    Free Software Foundation, Inc.
 
    This file is part of BFD, the Binary File Descriptor library.
@@ -2114,6 +2114,13 @@ _bfd_sparc_elf_adjust_dynamic_symbol (struct bfd_link_info *info,
       return TRUE;
     }
 
+  if (h->size == 0)
+    {
+      (*_bfd_error_handler) (_("dynamic variable `%s' is zero size"),
+			     h->root.root.string);
+      return TRUE;
+    }
+
   /* We must allocate the symbol in our .dynbss section, which will
      become part of the .bss section of the executable.  There will be
      an entry for this symbol in the .dynsym section.  The dynamic
@@ -2128,7 +2135,7 @@ _bfd_sparc_elf_adjust_dynamic_symbol (struct bfd_link_info *info,
      to copy the initial value out of the dynamic object and into the
      runtime process image.  We need to remember the offset into the
      .rel.bss section we are going to use.  */
-  if ((h->root.u.def.section->flags & SEC_ALLOC) != 0 && h->size != 0)
+  if ((h->root.u.def.section->flags & SEC_ALLOC) != 0)
     {
       htab->srelbss->size += SPARC_ELF_RELA_BYTES (htab);
       h->needs_copy = 1;
@@ -3821,9 +3828,7 @@ _bfd_sparc_elf_relocate_section (bfd *output_bfd,
 	 not process them.  */
       if (unresolved_reloc
 	  && !((input_section->flags & SEC_DEBUGGING) != 0
-	       && h->def_dynamic)
-	  && _bfd_elf_section_offset (output_bfd, info, input_section,
-				      rel->r_offset) != (bfd_vma) -1)
+	       && h->def_dynamic))
 	(*_bfd_error_handler)
 	  (_("%B(%A+0x%lx): unresolvable %s relocation against symbol `%s'"),
 	   input_bfd,
@@ -4062,9 +4067,7 @@ do_relocation:
 		   We don't, but this breaks stabs debugging info, whose
 		   relocations are only 32-bits wide.  Ignore overflows in
 		   this case and also for discarded entries.  */
-		if ((r_type == R_SPARC_32
-		     || r_type == R_SPARC_UA32
-		     || r_type == R_SPARC_DISP32)
+		if ((r_type == R_SPARC_32 || r_type == R_SPARC_DISP32)
 		    && (((input_section->flags & SEC_DEBUGGING) != 0
 			 && strcmp (bfd_section_name (input_bfd,
 						      input_section),

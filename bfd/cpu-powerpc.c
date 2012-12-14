@@ -1,6 +1,6 @@
 /* BFD PowerPC CPU definition
-   Copyright 1994, 1995, 1996, 2000, 2001, 2002, 2003, 2005, 2007, 2008,
-   2010, 2012 Free Software Foundation, Inc.
+   Copyright 1994, 1995, 1996, 2000, 2001, 2002, 2003, 2005, 2007, 2008, 2010
+   Free Software Foundation, Inc.
    Contributed by Ian Lance Taylor, Cygnus Support.
 
    This file is part of BFD, the Binary File Descriptor library.
@@ -65,7 +65,6 @@ const bfd_arch_info_type bfd_powerpc_archs[] =
     TRUE, /* default for 64 bit target */
     powerpc_compatible,
     bfd_default_scan,
-    bfd_arch_default_fill,
     &bfd_powerpc_archs[1]
   },
   /* elf32-ppc:ppc_elf_object_p relies on the default 32 bit arch
@@ -82,7 +81,6 @@ const bfd_arch_info_type bfd_powerpc_archs[] =
     FALSE,
     powerpc_compatible,
     bfd_default_scan,
-    bfd_arch_default_fill,
     &bfd_powerpc_archs[2],
   },
 #else
@@ -99,7 +97,6 @@ const bfd_arch_info_type bfd_powerpc_archs[] =
     TRUE, /* default for 32 bit target */
     powerpc_compatible,
     bfd_default_scan,
-    bfd_arch_default_fill,
     &bfd_powerpc_archs[1],
   },
   /* elf64-ppc:ppc64_elf_object_p relies on the default 64 bit arch
@@ -116,7 +113,6 @@ const bfd_arch_info_type bfd_powerpc_archs[] =
     FALSE,
     powerpc_compatible,
     bfd_default_scan,
-    bfd_arch_default_fill,
     &bfd_powerpc_archs[2]
   },
 #endif
@@ -132,7 +128,6 @@ const bfd_arch_info_type bfd_powerpc_archs[] =
     FALSE, /* not the default */
     powerpc_compatible,
     bfd_default_scan,
-    bfd_arch_default_fill,
     &bfd_powerpc_archs[3]
   },
   {
@@ -147,7 +142,6 @@ const bfd_arch_info_type bfd_powerpc_archs[] =
     FALSE, /* not the default */
     powerpc_compatible,
     bfd_default_scan,
-    bfd_arch_default_fill,
     &bfd_powerpc_archs[4]
   },
   {
@@ -162,7 +156,6 @@ const bfd_arch_info_type bfd_powerpc_archs[] =
     FALSE, /* not the default */
     powerpc_compatible,
     bfd_default_scan,
-    bfd_arch_default_fill,
     &bfd_powerpc_archs[5]
   },
   {
@@ -177,7 +170,6 @@ const bfd_arch_info_type bfd_powerpc_archs[] =
     FALSE, /* not the default */
     powerpc_compatible,
     bfd_default_scan,
-    bfd_arch_default_fill,
     &bfd_powerpc_archs[6]
   },
   {
@@ -192,7 +184,6 @@ const bfd_arch_info_type bfd_powerpc_archs[] =
     FALSE, /* not the default */
     powerpc_compatible,
     bfd_default_scan,
-    bfd_arch_default_fill,
     &bfd_powerpc_archs[7]
   },
   {
@@ -207,7 +198,6 @@ const bfd_arch_info_type bfd_powerpc_archs[] =
     FALSE, /* not the default */
     powerpc_compatible,
     bfd_default_scan,
-    bfd_arch_default_fill,
     &bfd_powerpc_archs[8]
   },
   {
@@ -222,7 +212,6 @@ const bfd_arch_info_type bfd_powerpc_archs[] =
     FALSE, /* not the default */
     powerpc_compatible,
     bfd_default_scan,
-    bfd_arch_default_fill,
     &bfd_powerpc_archs[9]
   },
   {
@@ -237,7 +226,6 @@ const bfd_arch_info_type bfd_powerpc_archs[] =
     FALSE, /* not the default */
     powerpc_compatible,
     bfd_default_scan,
-    bfd_arch_default_fill,
     &bfd_powerpc_archs[10]
   },
   {
@@ -252,7 +240,6 @@ const bfd_arch_info_type bfd_powerpc_archs[] =
     FALSE, /* not the default */
     powerpc_compatible,
     bfd_default_scan,
-    bfd_arch_default_fill,
     &bfd_powerpc_archs[11]
   },
   {
@@ -267,7 +254,6 @@ const bfd_arch_info_type bfd_powerpc_archs[] =
     FALSE, /* not the default */
     powerpc_compatible,
     bfd_default_scan,
-    bfd_arch_default_fill,
     &bfd_powerpc_archs[12]
   },
   {
@@ -282,7 +268,6 @@ const bfd_arch_info_type bfd_powerpc_archs[] =
     FALSE, /* not the default */
     powerpc_compatible,
     bfd_default_scan,
-    bfd_arch_default_fill,
     &bfd_powerpc_archs[13]
   },
   {
@@ -297,7 +282,6 @@ const bfd_arch_info_type bfd_powerpc_archs[] =
     FALSE,
     powerpc_compatible,
     bfd_default_scan,
-    bfd_arch_default_fill,
     &bfd_powerpc_archs[14]
   },
   {
@@ -312,7 +296,6 @@ const bfd_arch_info_type bfd_powerpc_archs[] =
     FALSE, /* not the default */
     powerpc_compatible,
     bfd_default_scan,
-    bfd_arch_default_fill,
     &bfd_powerpc_archs[15]
   },
   {
@@ -327,7 +310,6 @@ const bfd_arch_info_type bfd_powerpc_archs[] =
     FALSE, /* not the default */
     powerpc_compatible,
     bfd_default_scan,
-    bfd_arch_default_fill,
     &bfd_powerpc_archs[16]
   },
   {
@@ -342,7 +324,6 @@ const bfd_arch_info_type bfd_powerpc_archs[] =
     FALSE, /* not the default */
     powerpc_compatible,
     bfd_default_scan,
-    bfd_arch_default_fill,
     &bfd_powerpc_archs[17]
   },
   {
@@ -357,7 +338,6 @@ const bfd_arch_info_type bfd_powerpc_archs[] =
     FALSE, /* not the default */
     powerpc_compatible,
     bfd_default_scan,
-    bfd_arch_default_fill,
     &bfd_powerpc_archs[18]
   },
   {
@@ -372,37 +352,6 @@ const bfd_arch_info_type bfd_powerpc_archs[] =
     FALSE, /* not the default */
     powerpc_compatible,
     bfd_default_scan,
-    bfd_arch_default_fill,
-    &bfd_powerpc_archs[19]
-  },
-  {
-    64, /* 64 bits in a word */
-    64, /* 64 bits in an address */
-    8,  /* 8 bits in a byte */
-    bfd_arch_powerpc,
-    bfd_mach_ppc_e5500,
-    "powerpc",
-    "powerpc:e5500",
-    3,
-    FALSE, /* not the default */
-    powerpc_compatible,
-    bfd_default_scan,
-    bfd_arch_default_fill,
-    &bfd_powerpc_archs[20]
-  },
-  {
-    64, /* 64 bits in a word */
-    64, /* 64 bits in an address */
-    8,  /* 8 bits in a byte */
-    bfd_arch_powerpc,
-    bfd_mach_ppc_e6500,
-    "powerpc",
-    "powerpc:e6500",
-    3,
-    FALSE, /* not the default */
-    powerpc_compatible,
-    bfd_default_scan,
-    bfd_arch_default_fill,
     0
   }
 };

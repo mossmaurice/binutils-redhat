@@ -140,7 +140,7 @@ host_libs="intl libiberty opcodes bfd readline tcl tk itcl libgui zlib libcpp li
 # binutils, gas and ld appear in that order because it makes sense to run
 # "make check" in that particular order.
 # If --enable-gold is used, "gold" may replace "ld".
-host_tools="texinfo flex bison binutils gas ld fixincludes gcc cgen sid sim gdb gprof etc expect dejagnu m4 utils guile fastjar gnattools"
+host_tools="flex bison binutils gas ld fixincludes gcc cgen sid sim gdb gprof etc expect dejagnu m4 utils guile fastjar gnattools"
 
 # libgcj represents the runtime libraries only used by gcj.
 libgcj="target-libffi \
@@ -154,7 +154,6 @@ target_libraries="target-libgcc \
 		target-libgloss \
 		target-newlib \
 		target-libgomp \
-		target-libitm \
 		target-libstdc++-v3 \
 		target-libmudflap \
 		target-libssp \
@@ -483,7 +482,7 @@ if test x$enable_libgomp = x ; then
 	;;
     *-*-netbsd* | *-*-freebsd* | *-*-openbsd* | *-*-dragonfly*)
 	;;
-    *-*-solaris2* | *-*-hpux11*)
+    *-*-solaris2* | *-*-irix6* | *-*-osf* | *-*-hpux11*)
 	;;
     *-*-darwin* | *-*-aix*)
 	;;
@@ -493,22 +492,6 @@ if test x$enable_libgomp = x ; then
     esac
 fi
 
-# Disable libitm on unsupported systems.
-if test -d ${srcdir}/libitm; then
-    if test x$enable_libitm = x; then
-	AC_MSG_CHECKING([for libitm support])
-	if (srcdir=${srcdir}/libitm; \
-		. ${srcdir}/configure.tgt; \
-		test -n "$UNSUPPORTED")
-	then
-	    AC_MSG_RESULT([no])
-	    noconfigdirs="$noconfigdirs target-libitm"
-	else
-	    AC_MSG_RESULT([yes])
-	fi
-    fi
-fi
-
 # Disable libssp for some systems.
 case "${target}" in
   avr-*-*)
@@ -516,10 +499,6 @@ case "${target}" in
     noconfigdirs="$noconfigdirs target-libssp"
     ;;
   powerpc-*-aix* | rs6000-*-aix*)
-    noconfigdirs="$noconfigdirs target-libssp"
-    ;;
-  rl78-*-*)
-    # Dereferencing -1 is a compile-time error
     noconfigdirs="$noconfigdirs target-libssp"
     ;;
 esac
@@ -569,7 +548,7 @@ case "${target}" in
     ;;
   m68k-*-*)
     ;;
-  mips*-*-rtems*)
+  mips-sgi-irix6.* | mips*-*-rtems*)
     ;;
   mips*-*-linux*)
     ;;
@@ -683,6 +662,13 @@ case "${target}" in
     noconfigdirs="$noconfigdirs ${libgcj}"
     ;;
   rs6000-*-aix*)
+    noconfigdirs="$noconfigdirs ${libgcj}"
+    ;;
+  mips*-*-irix6*)
+    # Linking libjava exceeds command-line length limits on at least
+    # IRIX 6.2, but not on IRIX 6.5.
+    # Also, boehm-gc won't build on IRIX 6.5, according to Jeffrey Oldham
+    # <oldham@codesourcery.com>
     noconfigdirs="$noconfigdirs ${libgcj}"
     ;;
   *-*-lynxos*)
@@ -922,8 +908,8 @@ case "${target}" in
     noconfigdirs="$noconfigdirs libgui itcl ld"
     ;;
   ia64*-*-*vms*)
-    # No ld support yet.
-    noconfigdirs="$noconfigdirs libgui itcl ld"
+    # No gdb or ld support yet.
+    noconfigdirs="$noconfigdirs readline libgui itcl gdb ld"
     ;;
   i[[3456789]]86-w64-mingw*)
     ;;
@@ -2324,6 +2310,18 @@ case "${enable_target_optspace}:${target}" in
     ;;
 esac
 
+# Default to using --with-stabs for certain targets.
+if test x${with_stabs} = x ; then
+  case "${target}" in
+  mips*-*-irix[[56]]*)
+    ;;
+  mips*-*-* | alpha*-*-osf*)
+    with_stabs=yes;
+    extra_host_args="${extra_host_args} --with-stabs"
+    ;;
+  esac
+fi
+
 # Some systems (e.g., one of the i386-aix systems the gas testers are
 # using) don't handle "\$" correctly, so don't use it here.
 tooldir='${exec_prefix}'/${target_noncanonical}
@@ -3044,7 +3042,6 @@ NCN_STRICT_CHECK_TOOLS(WINDRES, windres)
 NCN_STRICT_CHECK_TOOLS(WINDMC, windmc)
 NCN_STRICT_CHECK_TOOLS(OBJCOPY, objcopy)
 NCN_STRICT_CHECK_TOOLS(OBJDUMP, objdump)
-NCN_STRICT_CHECK_TOOLS(READELF, readelf)
 AC_SUBST(CC)
 AC_SUBST(CXX)
 AC_SUBST(CFLAGS)
@@ -3078,7 +3075,6 @@ ACX_CHECK_INSTALLED_TARGET_TOOL(LIPO_FOR_TARGET, lipo)
 ACX_CHECK_INSTALLED_TARGET_TOOL(NM_FOR_TARGET, nm)
 ACX_CHECK_INSTALLED_TARGET_TOOL(OBJDUMP_FOR_TARGET, objdump)
 ACX_CHECK_INSTALLED_TARGET_TOOL(RANLIB_FOR_TARGET, ranlib)
-ACX_CHECK_INSTALLED_TARGET_TOOL(READELF_FOR_TARGET, readelf)
 ACX_CHECK_INSTALLED_TARGET_TOOL(STRIP_FOR_TARGET, strip)
 ACX_CHECK_INSTALLED_TARGET_TOOL(WINDRES_FOR_TARGET, windres)
 ACX_CHECK_INSTALLED_TARGET_TOOL(WINDMC_FOR_TARGET, windmc)
@@ -3108,7 +3104,6 @@ GCC_TARGET_TOOL(lipo, LIPO_FOR_TARGET, LIPO)
 GCC_TARGET_TOOL(nm, NM_FOR_TARGET, NM, [binutils/nm-new])
 GCC_TARGET_TOOL(objdump, OBJDUMP_FOR_TARGET, OBJDUMP, [binutils/objdump])
 GCC_TARGET_TOOL(ranlib, RANLIB_FOR_TARGET, RANLIB, [binutils/ranlib])
-GCC_TARGET_TOOL(readelf, READELF_FOR_TARGET, READELF, [binutils/readelf])
 GCC_TARGET_TOOL(strip, STRIP_FOR_TARGET, STRIP, [binutils/strip-new])
 GCC_TARGET_TOOL(windres, WINDRES_FOR_TARGET, WINDRES, [binutils/windres])
 GCC_TARGET_TOOL(windmc, WINDMC_FOR_TARGET, WINDMC, [binutils/windmc])

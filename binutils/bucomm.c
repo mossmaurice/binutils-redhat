@@ -1,6 +1,6 @@
 /* bucomm.c -- Bin Utils COMmon code.
    Copyright 1991, 1992, 1993, 1994, 1995, 1997, 1998, 2000, 2001, 2002,
-   2003, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012
+   2003, 2005, 2006, 2007, 2008, 2009, 2010, 2011
    Free Software Foundation, Inc.
 
    This file is part of GNU Binutils.
@@ -29,6 +29,7 @@
 #include "filenames.h"
 #include "libbfd.h"
 
+#include <sys/stat.h>
 #include <time.h>		/* ctime, maybe time_t */
 #include <assert.h>
 #include "bucomm.h"
@@ -224,9 +225,9 @@ endian_string (enum bfd_endian endian)
 {
   switch (endian)
     {
-    case BFD_ENDIAN_BIG: return _("big endian");
-    case BFD_ENDIAN_LITTLE: return _("little endian");
-    default: return _("endianness unknown");
+    case BFD_ENDIAN_BIG: return "big endian";
+    case BFD_ENDIAN_LITTLE: return "little endian";
+    default: return "endianness unknown";
     }
 }
 
@@ -247,7 +248,7 @@ display_target_list (void)
       bfd *abfd = bfd_openw (dummy_name, p->name);
       int a;
 
-      printf (_("%s\n (header %s, data %s)\n"), p->name,
+      printf ("%s\n (header %s, data %s)\n", p->name,
 	      endian_string (p->header_byteorder),
 	      endian_string (p->byteorder));
 

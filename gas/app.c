@@ -275,7 +275,6 @@ app_push (void)
 
   state = 0;
   saved_input = NULL;
-  add_newlines = 0;
 
   return (char *) saved;
 }

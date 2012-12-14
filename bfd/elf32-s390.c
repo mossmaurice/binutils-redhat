@@ -1,6 +1,6 @@
 /* IBM S/390-specific support for 32-bit ELF
    Copyright 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-   2011, 2012 Free Software Foundation, Inc.
+   2011 Free Software Foundation, Inc.
    Contributed by Carl B. Pedersen and Martin Schwidefsky.
 
    This file is part of BFD, the Binary File Descriptor library.
@@ -1647,6 +1647,13 @@ elf_s390_adjust_dynamic_symbol (info, h)
 	}
     }
 
+  if (h->size == 0)
+    {
+      (*_bfd_error_handler) (_("dynamic variable `%s' is zero size"),
+			     h->root.root.string);
+      return TRUE;
+    }
+
   /* We must allocate the symbol in our .dynbss section, which will
      become part of the .bss section of the executable.  There will be
      an entry for this symbol in the .dynsym section.  The dynamic
@@ -1662,7 +1669,7 @@ elf_s390_adjust_dynamic_symbol (info, h)
   /* We must generate a R_390_COPY reloc to tell the dynamic linker to
      copy the initial value out of the dynamic object and into the
      runtime process image.  */
-  if ((h->root.u.def.section->flags & SEC_ALLOC) != 0 && h->size != 0)
+  if ((h->root.u.def.section->flags & SEC_ALLOC) != 0)
     {
       htab->srelbss->size += sizeof (Elf32_External_Rela);
       h->needs_copy = 1;
@@ -2855,7 +2862,7 @@ elf_s390_relocate_section (output_bfd, info, input_bfd, input_section,
 	  continue;
 
 	case R_390_TLS_LDO32:
-	  if (info->shared || (input_section->flags & SEC_DEBUGGING))
+	  if (info->shared)
 	    relocation -= dtpoff_base (info);
 	  else
 	    /* When converting LDO to LE, we must negate.  */
@@ -2912,18 +2919,11 @@ elf_s390_relocate_section (output_bfd, info, input_bfd, input_section,
 
 	      insn = bfd_get_32 (input_bfd, contents + rel->r_offset);
 	      if ((insn & 0xff000fff) != 0x4d000000 &&
-		  (insn & 0xffff0000) != 0xc0e50000 &&
-		  (insn & 0xff000000) != 0x0d000000)
+		  (insn & 0xffff0000) != 0xc0e50000)
 		invalid_tls_insn (input_bfd, input_section, rel);
 	      if (!info->shared && (h == NULL || h->dynindx == -1))
 		{
-		  if ((insn & 0xff000000) == 0x0d000000)
-		    {
-		      /* GD->LE transition.
-			 basr rx, ry -> nopr r7 */
-		      insn = 0x07070000 | (insn & 0xffff);
-		    }
-		  else if ((insn & 0xff000000) == 0x4d000000)
+		  if ((insn & 0xff000000) == 0x4d000000)
 		    {
 		      /* GD->LE transition.
 			 bas %r14,0(%rx,%r13) -> bc 0,0  */
@@ -2932,7 +2932,7 @@ elf_s390_relocate_section (output_bfd, info, input_bfd, input_section,
 		  else
 		    {
 		      /* GD->LE transition.
-			 brasl %r14,_tls_get_offset@plt -> brcl 0,.  */
+			 brasl %r14,_tls_get_addr@plt -> brcl 0,.  */
 		      insn = 0xc0040000;
 		      bfd_put_16 (output_bfd, 0x0000,
 				  contents + rel->r_offset + 4);
@@ -2940,11 +2940,6 @@ elf_s390_relocate_section (output_bfd, info, input_bfd, input_section,
 		}
 	      else
 		{
-		  /* If basr is used in the pic case to invoke
-		     _tls_get_offset, something went wrong before.  */
-		  if ((insn & 0xff000000) == 0x0d000000)
-		    invalid_tls_insn (input_bfd, input_section, rel);
-
 		  if ((insn & 0xff000000) == 0x4d000000)
 		    {
 		      /* GD->IE transition.
@@ -2971,17 +2966,9 @@ elf_s390_relocate_section (output_bfd, info, input_bfd, input_section,
 
 		  insn = bfd_get_32 (input_bfd, contents + rel->r_offset);
 		  if ((insn & 0xff000fff) != 0x4d000000 &&
-		      (insn & 0xffff0000) != 0xc0e50000 &&
-		      (insn & 0xff000000) != 0x0d000000)
+		      (insn & 0xffff0000) != 0xc0e50000)
 		    invalid_tls_insn (input_bfd, input_section, rel);
-
-		  if ((insn & 0xff000000) == 0x0d000000)
-		    {
-		      /* LD->LE transition.
-			 basr rx, ry -> nopr r7 */
-		      insn = 0x07070000 | (insn & 0xffff);
-		    }
-		  else if ((insn & 0xff000000) == 0x4d000000)
+		  if ((insn & 0xff000000) == 0x4d000000)
 		    {
 		      /* LD->LE transition.
 			 bas %r14,0(%rx,%r13) -> bc 0,0  */
@@ -2990,7 +2977,7 @@ elf_s390_relocate_section (output_bfd, info, input_bfd, input_section,
 		  else
 		    {
 		      /* LD->LE transition.
-			 brasl %r14,__tls_get_offset@plt -> brcl 0,. */
+			 brasl %r14,__tls_get_addr@plt -> brcl 0,. */
 		      insn = 0xc0040000;
 		      bfd_put_16 (output_bfd, 0x0000,
 				  contents + rel->r_offset + 4);
@@ -3009,9 +2996,7 @@ elf_s390_relocate_section (output_bfd, info, input_bfd, input_section,
 	 not process them.  */
       if (unresolved_reloc
 	  && !((input_section->flags & SEC_DEBUGGING) != 0
-	       && h->def_dynamic)
-	  && _bfd_elf_section_offset (output_bfd, info, input_section,
-				      rel->r_offset) != (bfd_vma) -1)
+	       && h->def_dynamic))
 	(*_bfd_error_handler)
 	  (_("%B(%A+0x%lx): unresolvable %s relocation against symbol `%s'"),
 	   input_bfd,

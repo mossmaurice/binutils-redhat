@@ -1,6 +1,6 @@
 #
 # Unusual variables checked by this code:
-#	NOP - four byte opcode for no-op (defaults to none)
+#	NOP - four byte opcode for no-op (defaults to 0)
 #	NO_SMALL_DATA - no .sbss/.sbss2/.sdata/.sdata2 sections if not
 #		empty.
 #	SMALL_DATA_CTOR - .ctors contains small data.
@@ -90,12 +90,6 @@
 #  .lbss	.gnu.linkonce.lb.foo
 #
 #  Each of these can also have corresponding .rel.* and .rela.* sections.
-
-if test -n "$NOP"; then
-  FILL="=$NOP"
-else
-  FILL=
-fi
 
 test -z "$RODATA_NAME" && RODATA_NAME=rodata
 test -z "$SDATA_NAME" && SDATA_NAME=sdata
@@ -444,7 +438,7 @@ cat <<EOF
     ${RELOCATING+${INIT_START}}
     KEEP (*(.init))
     ${RELOCATING+${INIT_END}}
-  } ${FILL}
+  } =${NOP-0}
 
   ${TEXT_PLT+${PLT}}
   ${TINY_READONLY_SECTION}
@@ -459,13 +453,13 @@ cat <<EOF
     /* .gnu.warning sections are handled specially by elf32.em.  */
     *(.gnu.warning)
     ${RELOCATING+${OTHER_TEXT_SECTIONS}}
-  } ${FILL}
+  } =${NOP-0}
   .fini         ${RELOCATING-0} :
   {
     ${RELOCATING+${FINI_START}}
     KEEP (*(.fini))
     ${RELOCATING+${FINI_END}}
-  } ${FILL}
+  } =${NOP-0}
   ${RELOCATING+PROVIDE (__${ETEXT_NAME} = .);}
   ${RELOCATING+PROVIDE (_${ETEXT_NAME} = .);}
   ${RELOCATING+PROVIDE (${ETEXT_NAME} = .);}
