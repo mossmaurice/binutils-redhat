@@ -7,7 +7,7 @@ configure-commands:
 
     - |
       export STAGE2_SYSROOT="$(dirname $(pwd))"
-      export CPPFLAGS="-B$STAGE2_SYSROOT/tools --sysroot=$STAGE2_SYSROOT"
+      export CPPFLAGS="--sysroot=$STAGE2_SYSROOT"
       export LDFLAGS="-Wl,--sysroot=$STAGE2_SYSROOT"
       ./configure --prefix="$PREFIX" --disable-nls --disable-werror \
         --build=$BUILD --host=$TARGET_STAGE1 --target=$TARGET_STAGE1 \
@@ -19,6 +19,6 @@ build-commands:
     # TARGET_CPPFLAGS may be the answer)
     - |
       export STAGE2_SYSROOT="$(dirname $(pwd))"
-      export CPPFLAGS="-B$STAGE2_SYSROOT/tools --sysroot=$STAGE2_SYSROOT"
+      export CPPFLAGS="--sysroot=$STAGE2_SYSROOT"
       export LDFLAGS="-Wl,--sysroot=$STAGE2_SYSROOT"
       make
