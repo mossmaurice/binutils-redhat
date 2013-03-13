@@ -8,6 +8,7 @@ configure-commands:
     - |
       export STAGE2_SYSROOT="$(dirname $(pwd))"
       export CPPFLAGS="--sysroot=$STAGE2_SYSROOT"
+      export CXX=false
       export LDFLAGS="-Wl,--sysroot=$STAGE2_SYSROOT"
       ./configure --prefix="$PREFIX" --disable-nls --disable-werror \
         --build=$BUILD --host=$TARGET_STAGE1 --target=$TARGET_STAGE1 \

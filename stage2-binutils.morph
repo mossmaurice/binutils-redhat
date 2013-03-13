@@ -4,7 +4,7 @@
     "build-system": "autotools",
     "configure-commands": [
         "stage2-eglibc-fix-specs",
-        "export STAGE2_SYSROOT=\"$(dirname $(pwd))\"\nexport CPPFLAGS=\"--sysroot=$STAGE2_SYSROOT\"\nexport LDFLAGS=\"-Wl,--sysroot=$STAGE2_SYSROOT\"\n./configure --prefix=\"$PREFIX\" --disable-nls --disable-werror \\\n  --build=$BUILD --host=$TARGET_STAGE1 --target=$TARGET_STAGE1 \\\n  --with-lib-path=\"$PREFIX/lib\"\n"
+        "export STAGE2_SYSROOT=\"$(dirname $(pwd))\"\nexport CPPFLAGS=\"--sysroot=$STAGE2_SYSROOT\"\nexport CXX=false\nexport LDFLAGS=\"-Wl,--sysroot=$STAGE2_SYSROOT\"\n./configure --prefix=\"$PREFIX\" --disable-nls --disable-werror \\\n  --build=$BUILD --host=$TARGET_STAGE1 --target=$TARGET_STAGE1 \\\n  --with-lib-path=\"$PREFIX/lib\"\n"
     ],
     "build-commands": [
         "export STAGE2_SYSROOT=\"$(dirname $(pwd))\"\nexport CPPFLAGS=\"--sysroot=$STAGE2_SYSROOT\"\nexport LDFLAGS=\"-Wl,--sysroot=$STAGE2_SYSROOT\"\nmake\n"
