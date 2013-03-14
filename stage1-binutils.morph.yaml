@@ -11,5 +11,7 @@ configure-commands:
 
     - |
       ./configure --prefix="$PREFIX" --disable-nls --disable-werror \
-        --build=$BUILD --host=$BUILD --target=$TARGET_STAGE1 \
+        --build=$(sh config.guess) \
+        --host=$(sh config.guess) \
+        --target=$TARGET_STAGE1 \
         --with-sysroot="/" --with-lib-path="=$PREFIX/lib"

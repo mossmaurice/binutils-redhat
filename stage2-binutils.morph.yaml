@@ -11,7 +11,9 @@ configure-commands:
       export CXX=false
       export LDFLAGS="-Wl,--sysroot=$STAGE2_SYSROOT"
       ./configure --prefix="$PREFIX" --disable-nls --disable-werror \
-        --build=$BUILD --host=$TARGET_STAGE1 --target=$TARGET_STAGE1 \
+        --build=$(sh config.guess) \
+        --host=$TARGET_STAGE1 \
+        --target=$TARGET_STAGE1 \
         --with-lib-path="$PREFIX/lib --with-system-zlib"
 
 build-commands:
