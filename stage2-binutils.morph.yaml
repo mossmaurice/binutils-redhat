@@ -12,7 +12,7 @@ configure-commands:
       export LDFLAGS="-Wl,--sysroot=$STAGE2_SYSROOT"
       ./configure --prefix="$PREFIX" --disable-nls --disable-werror \
         --build=$BUILD --host=$TARGET_STAGE1 --target=$TARGET_STAGE1 \
-        --with-lib-path="$PREFIX/lib"
+        --with-lib-path="$PREFIX/lib --with-system-zlib"
 
 build-commands:
     # Nested configure scripts require that we set CPPFLAGS here as well
