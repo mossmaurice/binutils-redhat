@@ -3,7 +3,6 @@
     "kind": "chunk",
     "build-system": "autotools",
     "configure-commands": [
-        "./configure --prefix=\"$PREFIX\" --disable-nls --disable-werror"
+        "./configure --prefix=\"$PREFIX\" --disable-nls --disable-werror \\\n  --with-system-zlib\n"
     ]
 }
-

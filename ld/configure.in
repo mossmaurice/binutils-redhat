@@ -132,7 +132,9 @@ fi
 # host-specific stuff:
 
 AC_PROG_CC
-AC_PROG_CXX
+# C++ is only needed for the unit tests, and we don't have it available
+# while bootstrapping in Baserock.
+#AC_PROG_CXX
 AC_GNU_SOURCE
 AC_USE_SYSTEM_EXTENSIONS
 ACX_LARGEFILE
