@@ -14,7 +14,7 @@ configure-commands:
         --build=$(sh config.guess) \
         --host=$TARGET_STAGE1 \
         --target=$TARGET_STAGE1 \
-        --with-lib-path="$PREFIX/lib --with-system-zlib"
+        --with-lib-path="$PREFIX/lib"
 
 build-commands:
     # Nested configure scripts require that we set CPPFLAGS here as well
