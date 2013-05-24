@@ -13,8 +13,7 @@ configure-commands:
       ./configure --prefix="$PREFIX" --disable-nls --disable-werror \
         --build=$(sh config.guess) \
         --host=$TARGET_STAGE1 \
-        --target=$TARGET_STAGE1 \
-        --with-lib-path="$PREFIX/lib"
+        --target=$TARGET_STAGE1
 
 build-commands:
     # Nested configure scripts require that we set CPPFLAGS here as well
