@@ -3,8 +3,6 @@ kind: chunk
 build-system: autotools
 
 configure-commands:
-    - stage2-eglibc-fix-specs
-
     - |
       export STAGE2_SYSROOT="$(dirname $(pwd))"
       export CPPFLAGS="--sysroot=$STAGE2_SYSROOT"
